@@ -24,12 +24,21 @@ import dearpygui.dearpygui as dpg
 import requests
 
 def get_random_quote():
-    response = requests.get("https://api.quotable.io/random")
-    if response.status_code == 200:
+    try:
+        response = requests.get(
+            "http://api.forismatic.com/api/1.0/",
+            params={"method": "getQuote", "format": "json", "lang": "en"},
+            timeout=10,
+        )
+        response.raise_for_status()
         data = response.json()
-        return data['content'], data['author']
-    else:
+        quote = data.get("quoteText", "").strip()
+        author = data.get("quoteAuthor", "").strip()
+        if quote:
+            return quote, author
         return "Failed to retrieve quote", ""
+    except requests.RequestException:
+        return "Could not reach quote service. Check your internet connection.", ""
 
 def update_quote():
     quote, author = get_random_quote()
